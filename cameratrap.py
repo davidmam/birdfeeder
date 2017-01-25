@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jan 25 20:35:03 2017
+
+@author: David
+"""
+import datetime
+import glob
+import logging
+import os
+import sys
+import time
+import subprocess
+import picamera
+import picamera.array
+import numpy as np
+import pyexiv2
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
+from fractions import Fraction
+
+from flask import Flask
+
+app=Flask(__name__)
+
+mypath = os.path.abspath(__file__)  # Find the full path of this python script
+baseDir = os.path.dirname(mypath)  # get the path location only (excluding script name)
+baseFileName = os.path.splitext(os.path.basename(mypath))[0]
+progName = os.path.basename(__file__)
+logFilePath = os.path.join(baseDir, baseFileName + ".log")
+print("----------------------------------------------------------------------------------------------")
+# print("%s %s" %( progName, progVer ))
+
+configFilePath = os.path.join(baseDir, "config.py")
+if not os.path.exists(configFilePath):
+    print("ERROR - Cannot Import Configuration Variables. Missing Configuration File %s" % ( configFilePath ))
+    quit()
+else:
+    # Read Configuration variables from config.py file
+    print("Importing Configuration Variables from File %s" % ( configFilePath ))    
+    from config import *
+
+def writeTextToImage(imagename, datetoprint):
+    # function to write date/time stamp directly on top or bottom of images.
+    FOREGROUND = ( 255, 255, 255 )  # rgb settings for white text foreground
+    textColour = "White"
+
+    # centre text and compensate for graphics text being wider
+    x = int((imageWidth/2) - (len(imagename)*2))
+    if showTextBottom:
+        y = (imageHeight - 50)  # show text at bottom of image 
+    else:
+        y = 10  # show text at top of image
+    TEXT = imageNamePrefix + datetoprint
+    font_path = '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf'
+    font = ImageFont.truetype(font_path, showTextFontSize, encoding='unic')
+    text = TEXT.decode('utf-8')
+
+    # Read exif data since ImageDraw does not save this metadata
+    img = Image.open(imagename)
+    metadata = pyexiv2.ImageMetadata(imagename) 
+    metadata.read()
+    
+    draw = ImageDraw.Draw(img)
+    # draw.text((x, y),"Sample Text",(r,g,b))
+    draw.text(( x, y ), text, FOREGROUND, font=font)
+    img.save(imagename)
+    metadata.write()    # Write previously saved exif data to image file
+    logging.info("Added %s Text[%s] on %s", textColour, datetoprint, imagename)
+    return
+
+def getImageName(path, prefix):
+    # build image file names by number sequence or date/time
+
+    rightNow = datetime.datetime.now()
+    filename = "%s/%s%04d%02d%02d-%02d%02d%02d.jpg" % ( path, prefix ,rightNow.year, rightNow.month, rightNow.day, rightNow.hour, rightNow.minute, rightNow.second)     
+    return filename
+
+def getVideoName(path, prefix):
+    # build image file names by number sequence or date/time
+
+    rightNow = datetime.datetime.now()
+    filename = "%s/%s%04d%02d%02d-%02d%02d%02d.h264" % ( path, prefix ,rightNow.year, rightNow.month, rightNow.day, rightNow.hour, rightNow.minute, rightNow.second)
+    return filename
+
+def takeDayImage(filename):
+    # Take a Day image using exp=auto and awb=auto
+    with picamera.PiCamera() as camera:
+        camera.resolution = (imageWidth, imageHeight) 
+        time.sleep(0.5)   # sleep for a little while so camera can get adjustments
+        if imagePreview:
+            camera.start_preview()
+        camera.vflip = imageVFlip
+        camera.hflip = imageHFlip
+        camera.rotation = imageRotation #Note use imageVFlip and imageHFlip variables
+        # Day Automatic Mode
+        camera.exposure_mode = 'auto'
+        camera.awb_mode = 'auto'
+        camera.capture(filename, use_video_port=useVideoPort)
+    logging.info("Size=%ix%i exp=auto awb=auto %s" % (imageWidth, imageHeight, filename))
+    return
+
+
+
+def takeVideo(filename):
+    # Take a short motion video if required
+    logging.info("Size %ix%i for %i sec %s" % (imageWidth, imageHeight, motionVideoTimer, filename))
+    if motionVideoOn:
+        with picamera.PiCamera() as camera:
+            camera.resolution = (imageWidth, imageHeight)
+            camera.vflip = imageVFlip
+            camera.hflip = imageHFlip
+            camera.rotation = imageRotation #Note use imageVFlip and imageHFlip variables
+            if showDateOnImage:
+                rightNow = datetime.datetime.now()            
+                dateTimeText = " Started at %04d-%02d-%02d %02d:%02d:%02d " % (rightNow.year, rightNow.month, rightNow.day, rightNow.hour, rightNow.minute, rightNow.second)
+                camera.annotate_text_size = showTextFontSize
+                camera.annotate_foreground = picamera.Color('black')
+                camera.annotate_background = picamera.Color('white')               
+                camera.annotate_text = dateTimeText              
+            camera.start_recording(filename)
+            camera.wait_recording(motionVideoTimer)
+            camera.stop_recording()
+        # This creates a subprocess that runs convid.sh with the filename as a parameter
+        try:
+            convid = "%s/convid.sh %s" % ( baseDir, filename )        
+            proc = subprocess.Popen(convid, shell=True,
+                             stdin=None, stdout=None, stderr=None, close_fds=True) 
+        except IOError:
+            print("subprocess %s failed" %s ( convid ))
+        else:        
+            print("unidentified error")
+        createSyncLockFile(filename)            
+    return
+    
+@app.route('/')
+def hello():
+    return "Hello World!"
+
+@app.route('/take-image')
+def take_image():
+    filename = getImageName(motionPath, imagePrefix)
+    takeDayImage(filename)
+    writeTextToImage(filename, datetime.datetime.now())
+    return send_file(open(filename, 'rb'), mimetype='image/jpeg', filename=filename)
+
+@app.route('/take-video')
+def take_video():
+    filename = getVideoName(motionPath, imagePrefix)
+    takeVideo(filename)
+    return take_image()
+    
+if __name__=='__main__':
+    app.run(port=8000, debug=True)

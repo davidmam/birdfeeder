@@ -14,6 +14,8 @@ Data logging for weighing birdfeeder
 #standard python libs
 import logging
 import time
+import requests
+
 
 #third party libs
 #from daemon import runner
@@ -60,6 +62,7 @@ class App():
                 thisweight = median([x[0] for x in ringbuffer])
                 if abs(thisweight[0] - lastweight[0]) >threshold:
                     # trigger photo here
+                    response=requests.get('http://192.168.0.8:8000/take-image')                    
                     for n in ringbuffer:
                 
                 # save median value
