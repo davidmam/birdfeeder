@@ -142,7 +142,7 @@ def hello():
 def take_image():
     filename = getImageName(motionDir, imageNamePrefix)
     takeDayImage(filename)
-    writeTextToImage(filename, datetime.datetime.now())
+    writeTextToImage(filename, str(datetime.datetime.now()))
     return send_file(open(filename, 'rb'), mimetype='image/jpeg', filename=filename)
 
 @app.route('/take-video')
