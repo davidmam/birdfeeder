@@ -49,7 +49,7 @@ class App():
         ringbuffer = []
         maxringsize = 5
         pos = 0
-        lastweight = (0, datetime.now()) 
+        lastweight = 0 
         threshold = 3.0 # minimum change to record
         while True:
             try:
@@ -60,7 +60,7 @@ class App():
                 else:
                     ringbuffer[pos] = (weight, timestamp)
                 thisweight = median([x[0] for x in ringbuffer])
-                if abs(thisweight[0] - lastweight[0]) >threshold:
+                if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
                     response=requests.get('http://192.168.0.4:8000/take-image')                    
                     for n in ringbuffer:
@@ -70,7 +70,7 @@ class App():
                         self.db.insert({'Sensor': 'birdfeeder', 
                                         'timestamp': n[1],
                                         'weight': n[0], 
-                                        'change': thisweight[0]-lastweight[0]})
+                                        'change': thisweight-lastweight})
                 #self.feeder.power_down()
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize

@@ -97,7 +97,7 @@ class HX711:
         return float(self.get_value(times)) / float(self.SCALE)
 
     def get_weight(self, times=3):
-        return ("%.3f" % float(float(self.get_units(times)) / float(self.REFERENCE_UNIT)))
+        return  float(float(self.get_units(times)) / float(self.REFERENCE_UNIT))
 
     def tare(self, times=15):
         # Backup SCALE value
