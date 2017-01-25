@@ -140,14 +140,14 @@ def hello():
 
 @app.route('/take-image')
 def take_image():
-    filename = getImageName(motionPath, imagePrefix)
+    filename = getImageName(motionDir, imagePrefix)
     takeDayImage(filename)
     writeTextToImage(filename, datetime.datetime.now())
     return send_file(open(filename, 'rb'), mimetype='image/jpeg', filename=filename)
 
 @app.route('/take-video')
 def take_video():
-    filename = getVideoName(motionPath, imagePrefix)
+    filename = getVideoName(motionDir, imagePrefix)
     takeVideo(filename)
     return take_image()
     
