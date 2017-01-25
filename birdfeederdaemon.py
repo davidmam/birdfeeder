@@ -23,6 +23,7 @@ import sys
 import numpy as np  # sudo apt-get python-numpy
 from datetime import datetime
 from pymongo import MongoClient
+from statistics import median
 
 class App():
     
@@ -43,15 +44,35 @@ class App():
         self.feeder.tare()
             
     def run(self):
+        ringbuffer = []
+        maxringsize = 5
+        pos = 0
+        lastweight = (0, datetime.now()) 
+        threshold = 3.0 # minimum change to record
         while True:
             try:
-                weight = self.feeder.get_weight(5)
-                # save median value
+                weight = self.feeder.get_weight(5)                
                 timestamp = datetime.now()
-                self.db.insert({'Sensor': 'birdfeeder', 'timestamp': timestamp, 'weight': weight})
+                if len(ringbuffer) <5:
+                    ringbuffer.append((weight,timestamp))
+                else:
+                    ringbuffer[pos] = (weight, timestamp)
+                thisweight = median([x[0] for x in ringbuffer])
+                if abs(thisweight[0] - lastweight[0]) >threshold:
+                    # trigger photo here
+                    for n in ringbuffer:
+                
+                # save median value
+                
+                        self.db.insert({'Sensor': 'birdfeeder', 
+                                        'timestamp': n[1],
+                                        'weight': n[0], 
+                                        'change': thisweight[0]-lastweight[0]})
                 #self.feeder.power_down()
                 #self.feeder.power_up()
-                time.sleep(0.5)
+                pos = (pos+1)%maxringsize
+                lastweight = thisweight
+                time.sleep(0.2)
                 
             except (KeyboardInterrupt, SystemExit):
                 self.cleanAndExit()#Main code goes here ...
