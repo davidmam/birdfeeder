@@ -62,7 +62,7 @@ class App():
                 thisweight = median([x[0] for x in ringbuffer])
                 if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
-                    response=requests.get('http://192.168.0.4:8000/take-image')                    
+                    response=requests.get('http://192.168.0.3:8000/take-image')                    
                     for n in ringbuffer:
                 
                 # save median value
