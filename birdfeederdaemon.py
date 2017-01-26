@@ -62,7 +62,10 @@ class App():
                 thisweight = median([x[0] for x in ringbuffer])
                 if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
-                    response=requests.get('http://192.168.0.3:8000/take-image')                    
+                    try:
+                        response=requests.get('http://'+watcher_ip+'/take-image')
+                    except:
+                        print('No response from', watcher_ip)
                     for n in ringbuffer:
                 
                 # save median value
@@ -111,4 +114,5 @@ def runprog():
     app.run()
 
 if __name__ == '__main__':
+    watcher_ip = open('watcher_ip').read()
     runprog()
