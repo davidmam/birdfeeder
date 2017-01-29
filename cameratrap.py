@@ -20,7 +20,7 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from fractions import Fraction
 
-from flask import Flask, send_file
+from flask import Flask, send_file,request
 
 app=Flask(__name__)
 
