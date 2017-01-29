@@ -163,8 +163,12 @@ def list_images():
     daystamp=datetime.datetime.now().strftime('%Y%m%d')
     daystamp = request.args.get('day', daystamp)
     files = sorted([ x for x in os.listdir('motion') if daystamp in x ])
+    day = datetime.strptime(daystamp, '%Y%m%d')
+    nextday = day + datetime.timedelta(day=1)
+    previousday =day - datetime.timedelta(day=1)
     return render_template('filelist.html', heading = 'images for '+daystamp,
-                           images=files)
+                           images=files, nextday=nextday.strftime('%Y%m%d'), 
+                           previousday=previousday.strftime('%Y%m%d'))
     
     
     

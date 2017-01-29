@@ -9,10 +9,10 @@
 <li><a href="{{'/show-image?filename=' + image }}">{{image}}</a></li>
 {% endfor %}
 </ul>
-{% if previous %}
-<a href="{{'/list-images?day='+ previous }}">{{previous}}</a>
+{% if previousday %}
+<a href="{{'/list-images?day='+ previousday }}">{{previousday}}</a>
 {% endif %}
-{% if next %}
-<a href="{{'/list-images?day='+ next }}">{{next}}</a>
+{% if nextday %}
+<a href="{{'/list-images?day='+ nextday }}">{{nextday}}</a>
 {% endif %}
 </body>
