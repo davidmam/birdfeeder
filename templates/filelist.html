@@ -1,0 +1,18 @@
+<!-- filelist.html -->
+<!DOCTYPE html>
+<meta character="utf-8">
+
+<body>
+<h2>{{ heading }}</h2>
+<ul>
+{% for image in images %}
+<li><a href="{{'/show-image?filename=' + image }}">{{image}}</a></li>
+{% endfor %}
+</ul>
+{% if previous %}
+<a href="{{'/list-images?day='+ previous }}">{{previous}}</a>
+{% endif %}
+{% if next %}
+<a href="{{'/list-images?day='+ next }}">{{next}}</a>
+{% endif %}
+</body>

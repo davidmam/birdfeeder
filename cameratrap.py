@@ -20,7 +20,7 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from fractions import Fraction
 
-from flask import Flask, send_file,request
+from flask import Flask, send_file,request, render_template
 
 app=Flask(__name__)
 
@@ -162,7 +162,7 @@ def list_images():
     '''list images for a specific day'''
     daystamp=datetime.datetime.now().strftime('%Y%m%d')
     daystamp = request.args.get('day', daystamp)
-    files = [ x for x in os.listdir('motion') if daystamp in x ]
+    files = sorted([ x for x in os.listdir('motion') if daystamp in x ])
     return render_template('filelist.html', heading = 'images for '+daystamp,
                            images=files)
     
