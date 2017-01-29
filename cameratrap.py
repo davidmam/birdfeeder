@@ -150,6 +150,23 @@ def take_video():
     filename = getVideoName(motionDir, imageNamePrefix)
     takeVideo(filename)
     return take_image()
+
+@app.route('/show-image')
+def show_image():
+    '''return a specific image'''
+    filename=request.args.get('filename','Notfound.png')
+    return send_file(open('motion/'+filename, 'rb'), mimetype='image/jpeg')
+    
+@app.route('/list-images')
+def list_images():
+    '''list images for a specific day'''
+    daystamp=datetime.datetime.now().strftime('%Y%m%d')
+    daystamp = request.args.get('day', daystamp)
+    files = [ x for x in os.listdir('motion') if daystamp in x ]
+    return render_template('filelist.html', heading = 'images for '+daystamp,
+                           images=files)
+    
+    
     
 if __name__=='__main__':
     app.run(port=8000, host='0.0.0.0', debug=True)
