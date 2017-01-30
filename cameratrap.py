@@ -192,7 +192,7 @@ def image_details():
     previousfile = files[fileindex - 1]
     return render_template('imageinfo.html', filename=filename, 
                            changesign=changesign, change=change,
-                           nextfile=nextfile, previousfile=previousfile)
+                           nextfile=nextfile, previousfile=previousfile, timestamp=imgtime)
     
     
 if __name__=='__main__':
