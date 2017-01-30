@@ -175,7 +175,7 @@ def image_details():
     filename=request.args.get('filename')
     if filename is None:
         return render_template('Notfound.html')
-    imgtime = datetime.strptime(prefix+'%Y%m%d-%H%M%S.jpg',filename)
+    imgtime = datetime.datetime.strptime(prefix+'%Y%m%d-%H%M%S.jpg',filename)
     td = datetime.timedelta(seconds=2)
     db = MongoClient('192.168.0.4')
     cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte':imgtime + td}})
