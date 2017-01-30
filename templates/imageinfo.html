@@ -1,0 +1,20 @@
+<!-- image info template -->
+<!DOCTYPE html>
+<meta character="utf-8">
+
+<body>
+<h2>Bird feeder cam at {{ timestamp.hour }}:{{timestamp.minute}}:{{timestamp.second}} on 
+{{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}}  </h2>
+
+<div>
+<img src="/show-image?filename={{filename}}" />
+
+</div>
+<table border=1>
+<tr><td>Status</td><td>{{changesign}}</td></tr>
+<tr><td>Weight change</td><td>{{change}}g</td></tr>
+<tr><td><a href="/image-info?filename={{previousfile}}">Previous</a></td>
+<td><a href="/image-info?filename={{nextfile}}">Next</a></td></tr>
+</table>
+
+</body>
