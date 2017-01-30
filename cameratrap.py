@@ -170,6 +170,29 @@ def list_images():
                            images=files, nextday=nextday.strftime('%Y%m%d'), 
                            previousday=previousday.strftime('%Y%m%d'))
     
+@app.route('/image-details')
+def image_details():
+    filename=request.args.get('filename')
+    if filename is None:
+        return render_template('Notfound.html')
+    imgtime = datetime.strptime(prefix+'%Y%m%d-%H%M%S.jpg',filename)
+    td = datetime.timedelta(seconds=2)
+    db = MongoClient('192.168.0.4')
+    cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte':imgtime + td}})
+    weights = [x['weight'] for x in cursor]
+    change = max(weights)-min(weights)
+    changesign = 'arrived'
+    if weights[0] > weights[-1]:
+        changesign = 'departed'
+    files=sorted(os.listdir('motion'))
+    fileindex = files.index(filename)
+    nextfile = files[-1]
+    if fileindex < len(files) -1:
+        nextfile = files[fileindex + 1]
+    previousfile = files[fileindex - 1]
+    return render_template('imageinfo.html', filename=filename, 
+                           changesign=changesign, change=change,
+                           nextfile=nextfile, previousfile=previousfile)
     
     
 if __name__=='__main__':
