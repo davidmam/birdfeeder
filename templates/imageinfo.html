@@ -19,10 +19,12 @@
 {% for w in weights %}
 <tr><td>{{ w.timestamp }}</td><td>{{w.weight}}g</td></tr>
 {% endfor %}
-
+{% if fileinfo.species %}
+<tr><td>Species</td><td>{{fileinfo.species}}</td></tr>
+{% endif %}
 </table>
 <form name="birdform" id="birdform">
-<input type="hidden" name="picid" id="picid" value="{{fileinfo._id}}">
+<input type="hidden" name="picid" id="picid" value="{{filename}}">
 <select name="species" id="species">
 <option value="No bird">No bird
 <option value="Unidentified">Unidentified

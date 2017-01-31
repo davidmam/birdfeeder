@@ -22,6 +22,8 @@ from fractions import Fraction
 
 from flask import Flask, send_file,request, render_template,send_from_directory
 from pymongo import MongoClient
+from bson.json_util import dumps
+
 app=Flask(__name__)
 
 mypath = os.path.abspath(__file__)  # Find the full path of this python script
@@ -184,7 +186,7 @@ def image_details():
     db = MongoClient('192.168.0.4')
     
     fileinfo = db.test.birdwatcher.find_one({'filename': filename})
-    if fileinfo:
+    if fileinfo and 'tag' in fileinfo:
         cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
     else:
          cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte': imgtime }})
@@ -205,15 +207,20 @@ def image_details():
                            nextfile=nextfile, previousfile=previousfile, 
                            fileinfo=fileinfo, timestamp=imgtime)
  
-@app.route('/bird-details')
+@app.route('/bird-details', methods=['POST'])
 def bird_details():
     '''setter for bird details'''
-    picid = request.args.get('_id')
-    bird = request.args.get('species')
+    picid = request.form.get('picid')
+    bird = request.form.get('species')
     db = MongoClient('192.168.0.4')
-    db.birdwatcher.update_one({'_id': picid},
-                              {'$set': {'species': bird}})
- 
+    db.test.birdwatcher.update({'filename': picid},
+                              {'$set': {'species': bird}},
+                              upsert=True)
+
+    return dumps({'species':bird,
+		'id': picid} )
+
+
 @app.route('/static/js/<path:path>')
 def send_js(path):
     return send_from_directory('static/js', path)
