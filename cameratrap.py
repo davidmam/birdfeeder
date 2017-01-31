@@ -202,8 +202,18 @@ def image_details():
     previousfile = files[fileindex - 1]
     return render_template('imageinfo.html', filename=filename, 
                            changesign=changesign, change=change, weights=entries,
-                           nextfile=nextfile, previousfile=previousfile, timestamp=imgtime)
-    
+                           nextfile=nextfile, previousfile=previousfile, 
+                           fileinfo=fileinfo, timestamp=imgtime)
+ 
+@app.route('/bird-details')
+def bird_details():
+    '''setter for bird details'''
+    picid = request.args.get('_id')
+    bird = request.args.get('species')
+    db = MongoClient('192.168.0.4')
+    db.birdwatcher.update_one({'_id': picid},
+                              {'$set': {'species': bird}})
+                             
     
 if __name__=='__main__':
     app.run(port=8000, host='0.0.0.0', debug=True)

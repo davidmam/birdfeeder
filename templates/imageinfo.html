@@ -3,6 +3,8 @@
 <meta character="utf-8">
 
 <body>
+<script src="http://code.jquery.com/jQuery-1.11.0.min.js"></script>
+<script src="static/js/script.js"></script>
 <h2>Bird feeder cam at {{ timestamp.hour }}:{{timestamp.minute}}:{{timestamp.second}} on 
 {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}}  </h2>
 
@@ -17,6 +19,25 @@
 {% for w in weights %}
 <tr><td>{{ w.timestamp }}</td><td>{{w.weight}}g</td></tr>
 {% endfor %}
+
 </table>
+<form name="birdform">
+<input type="hidden" name="picid" value="{{fileinfo._id}}">
+<select name="species">
+<option value="No bird">
+<option value="Unidentified">
+<option value="Sparrow, Male">
+<option value="Sparrow, Female">
+<option value="Sparrow, unsure">
+<option value="Robin">
+<option value="Blue tit">
+<option value="Coal tit">
+<option value="Great tit">
+<option value="Chaffinch">
+<option value="Goldcrest">
+<option value="Other">
+</select>
+<input type="submit" name="submit">
+</form>
 </td></tr></table>
 </body>
