@@ -188,7 +188,7 @@ def image_details():
         cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
     else:
          cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte': imgtime }})
-    entries = sorted([y for y in cursor],key=lambda x:x['timestamp'])]    
+    entries = sorted([y for y in cursor],key=lambda x:x['timestamp'])    
     weights = [x['weight'] for x in entries] 
     change = max(weights)-min(weights)
     changesign = 'arrived'
@@ -201,7 +201,7 @@ def image_details():
         nextfile = files[fileindex + 1]
     previousfile = files[fileindex - 1]
     return render_template('imageinfo.html', filename=filename, 
-                           changesign=changesign, change=change, weights=weights,
+                           changesign=changesign, change=change, weights=entries,
                            nextfile=nextfile, previousfile=previousfile, timestamp=imgtime)
     
     

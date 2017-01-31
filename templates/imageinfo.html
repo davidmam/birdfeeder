@@ -7,17 +7,16 @@
 {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}}  </h2>
 
 <div>
-<img src="/show-image?filename={{filename}}" />
-
-</div>
-<table border=1>
+<table>
+<tr><td><a href="/image-details?filename={{previousfile}}">Previous</a></td>
+<td><img src="/show-image?filename={{filename}}" height=600 /></td>
+<td><a href="/image-details?filename={{nextfile}}">Next</a></td>
+<td><table border=1>
 <tr><td>Status</td><td>{{changesign}}</td></tr>
 <tr><td>Weight change</td><td>{{change}}g</td></tr>
 {% for w in weights %}
 <tr><td>{{ w.timestamp }}</td><td>{{w.weight}}g</td></tr>
 {% endfor %}
-<tr><td><a href="/image-details?filename={{previousfile}}">Previous</a></td>
-<td><a href="/image-details?filename={{nextfile}}">Next</a></td></tr>
 </table>
-
+</td></tr></table>
 </body>
