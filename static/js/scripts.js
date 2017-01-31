@@ -6,8 +6,8 @@ function recordBird() {
     });
 }
 
-$().ready(function(){
-    $("#submit").click(function(){
+$(document).ready(function(){
+    $("#submit").click(function(event){
         recordBird();
     })
 })
