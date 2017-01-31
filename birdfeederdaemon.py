@@ -74,8 +74,8 @@ class App():
                         self.db.insert({'Sensor': 'birdfeeder', 
                                         'timestamp': n[1],
                                         'weight': n[0], 
-                                        'change': thisweight-lastweight}
-                                        'tag': tag )
+                                        'change': thisweight-lastweight,
+                                        'tag': tag} )
                 #self.feeder.power_down()
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize
