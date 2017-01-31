@@ -213,7 +213,11 @@ def bird_details():
     db = MongoClient('192.168.0.4')
     db.birdwatcher.update_one({'_id': picid},
                               {'$set': {'species': bird}})
-                             
+ 
+@app.route('/static/js/<path:path>')
+def send_js(path):
+    return send_from_directory('static/js', path)
+                            
     
 if __name__=='__main__':
     app.run(port=8000, host='0.0.0.0', debug=True)
