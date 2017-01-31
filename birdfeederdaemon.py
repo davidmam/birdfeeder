@@ -15,7 +15,7 @@ Data logging for weighing birdfeeder
 import logging
 import time
 import requests
-
+from urllib.request import urlopen
 
 #third party libs
 #from daemon import runner
@@ -63,7 +63,7 @@ class App():
                 if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
                     try:
-                        response=requests.get('http://'+watcher_ip+'/take-image')
+                        response=urlopen('http://'+watcher_ip+'/take-image')
                     except:
                         print('No response from', watcher_ip)
                     for n in ringbuffer:
