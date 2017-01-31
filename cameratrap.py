@@ -21,7 +21,7 @@ from PIL import ImageDraw
 from fractions import Fraction
 
 from flask import Flask, send_file,request, render_template
-
+from pymongo import MongoClient
 app=Flask(__name__)
 
 mypath = os.path.abspath(__file__)  # Find the full path of this python script
@@ -179,8 +179,8 @@ def image_details():
     filename=request.args.get('filename')
     if filename is None:
         return render_template('Notfound.html')
-    imgtime = datetime.datetime.strptime(prefix+'%Y%m%d-%H%M%S.jpg',filename)
-    td = datetime.timedelta(seconds=2)
+    imgtime = datetime.datetime.strptime(filename, imageNamePrefix+'%Y%m%d-%H%M%S.jpg')
+    td = datetime.timedelta(seconds=5.5)
     db = MongoClient('192.168.0.4')
     fileinfo = db.test.birdwatcher.find_one({'filename': filename})
     cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
@@ -196,7 +196,7 @@ def image_details():
         nextfile = files[fileindex + 1]
     previousfile = files[fileindex - 1]
     return render_template('imageinfo.html', filename=filename, 
-                           changesign=changesign, change=change,
+                           changesign=changesign, change=change, weights=entries,
                            nextfile=nextfile, previousfile=previousfile, timestamp=imgtime)
     
     
