@@ -15,7 +15,7 @@ Data logging for weighing birdfeeder
 import logging
 import time
 import requests
-
+from urllib.request import urlopen
 
 #third party libs
 #from daemon import runner
@@ -64,7 +64,7 @@ class App():
                     # trigger photo here
                     tag = datetime.now().strftime('%Y%m%d%H%M%S')
                     try:
-                        response=requests.get('http://'+watcher_ip+'/take-image?tag={}'.format(tag))
+                        response=urlopen('http://'+watcher_ip+'/take-image')
                     except:
                         print('No response from', watcher_ip)
                     for n in ringbuffer:
@@ -74,8 +74,8 @@ class App():
                         self.db.insert({'Sensor': 'birdfeeder', 
                                         'timestamp': n[1],
                                         'weight': n[0], 
-                                        'change': thisweight-lastweight}
-                                        'tag': tag )
+                                        'change': thisweight-lastweight,
+                                        'tag': tag} )
                 #self.feeder.power_down()
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize
