@@ -182,8 +182,12 @@ def image_details():
     imgtime = datetime.datetime.strptime(filename, imageNamePrefix+'%Y%m%d-%H%M%S.jpg')
     td = datetime.timedelta(seconds=5.5)
     db = MongoClient('192.168.0.4')
+    
     fileinfo = db.test.birdwatcher.find_one({'filename': filename})
-    cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
+    if fileinfo:
+        cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
+    else:
+         cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte': imgtime }})
     weights = [x['weight'] for x in cursor]
     change = max(weights)-min(weights)
     changesign = 'arrived'
