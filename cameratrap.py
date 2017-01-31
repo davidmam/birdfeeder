@@ -141,8 +141,12 @@ def hello():
 @app.route('/take-image')
 def take_image():
     filename = getImageName(motionDir, imageNamePrefix)
+    tag = request.args.get('tag')
     takeDayImage(filename)
     writeTextToImage(filename, str(datetime.datetime.now()))
+    if tag:
+        db = MongoClient('192.168.0.4')
+        db.test.birdwatcher.insert({'tag':tag, 'filename':filename})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
 
 @app.route('/take-video')
@@ -160,7 +164,7 @@ def show_image():
 @app.route('/list-images')
 def list_images():
     '''list images for a specific day'''
-    daystamp=datetime.datetime.now().strftime('%Y%m%d')
+    daystamp = datetime.datetime.now().strftime('%Y%m%d')
     daystamp = request.args.get('day', daystamp)
     files = sorted([ x for x in os.listdir('motion') if daystamp in x ])
     day = datetime.datetime.strptime(daystamp, '%Y%m%d')
@@ -178,7 +182,8 @@ def image_details():
     imgtime = datetime.datetime.strptime(prefix+'%Y%m%d-%H%M%S.jpg',filename)
     td = datetime.timedelta(seconds=2)
     db = MongoClient('192.168.0.4')
-    cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte':imgtime + td}})
+    fileinfo = db.test.birdwatcher.find_one({'filename': filename})
+    cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
     weights = [x['weight'] for x in cursor]
     change = max(weights)-min(weights)
     changesign = 'arrived'
