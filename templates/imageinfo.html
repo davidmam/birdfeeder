@@ -3,8 +3,8 @@
 <meta character="utf-8">
 
 <body>
-<script src="static/js/jquery-3.1.1.slim.js"></script>
-<script src="static/js/script.js"></script>
+<script src="static/js/jquery-3.1.1.min.js"></script>
+<script src="static/js/scripts.js"></script>
 <h2>Bird feeder cam at {{ timestamp.hour }}:{{timestamp.minute}}:{{timestamp.second}} on 
 {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}}  </h2>
 
@@ -21,9 +21,9 @@
 {% endfor %}
 
 </table>
-<form name="birdform">
-<input type="hidden" name="picid" value="{{fileinfo._id}}">
-<select name="species">
+<form name="birdform" id="birdform">
+<input type="hidden" name="picid" id="picid" value="{{fileinfo._id}}">
+<select name="species" id="species">
 <option value="No bird">No bird
 <option value="Unidentified">Unidentified
 <option value="Sparrow, Male">Sparrow, Male
@@ -37,7 +37,7 @@
 <option value="Goldcrest">Goldcrest
 <option value="Other">Other
 </select>
-<input type="submit" name="submit">
+<span name="submit" id="submit">Submit</span>
 </form>
 </td></tr></table>
 </body>

@@ -20,7 +20,7 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from fractions import Fraction
 
-from flask import Flask, send_file,request, render_template
+from flask import Flask, send_file,request, render_template,send_from_directory
 from pymongo import MongoClient
 app=Flask(__name__)
 
