@@ -40,7 +40,7 @@ class App():
         self.feeder.set_reference_unit(92)
         self.feeder.power_down()
         self.feeder.power_up()
-        client = MongoClient()
+        client = MongoClient('192.168.0.4')
         self.db=client.test.birdfeeder
         time.sleep(2)
         self.feeder.tare()
@@ -62,6 +62,7 @@ class App():
                 thisweight = median([x[0] for x in ringbuffer])
                 if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
+                    tag = datetime.now().strftime('%Y%m%d%H%M%S')
                     try:
                         response=urlopen('http://'+watcher_ip+'/take-image')
                     except:
@@ -73,7 +74,8 @@ class App():
                         self.db.insert({'Sensor': 'birdfeeder', 
                                         'timestamp': n[1],
                                         'weight': n[0], 
-                                        'change': thisweight-lastweight})
+                                        'change': thisweight-lastweight}
+                                        'tag': tag )
                 #self.feeder.power_down()
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize

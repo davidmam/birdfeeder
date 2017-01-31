@@ -20,8 +20,8 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from fractions import Fraction
 
-from flask import Flask, send_file
-
+from flask import Flask, send_file,request, render_template
+from pymongo import MongoClient
 app=Flask(__name__)
 
 mypath = os.path.abspath(__file__)  # Find the full path of this python script
@@ -141,8 +141,12 @@ def hello():
 @app.route('/take-image')
 def take_image():
     filename = getImageName(motionDir, imageNamePrefix)
+    tag = request.args.get('tag')
     takeDayImage(filename)
     writeTextToImage(filename, str(datetime.datetime.now()))
+    if tag:
+        db = MongoClient('192.168.0.4')
+        db.test.birdwatcher.insert({'tag':tag, 'filename':filename})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
 
 @app.route('/take-video')
@@ -150,6 +154,51 @@ def take_video():
     filename = getVideoName(motionDir, imageNamePrefix)
     takeVideo(filename)
     return take_image()
+
+@app.route('/show-image')
+def show_image():
+    '''return a specific image'''
+    filename=request.args.get('filename','Notfound.png')
+    return send_file(open('motion/'+filename, 'rb'), mimetype='image/jpeg')
+    
+@app.route('/list-images')
+def list_images():
+    '''list images for a specific day'''
+    daystamp = datetime.datetime.now().strftime('%Y%m%d')
+    daystamp = request.args.get('day', daystamp)
+    files = sorted([ x for x in os.listdir('motion') if daystamp in x ])
+    day = datetime.datetime.strptime(daystamp, '%Y%m%d')
+    nextday = day + datetime.timedelta(days=1)
+    previousday =day - datetime.timedelta(days=1)
+    return render_template('filelist.html', heading = 'images for '+daystamp,
+                           images=files, nextday=nextday.strftime('%Y%m%d'), 
+                           previousday=previousday.strftime('%Y%m%d'))
+    
+@app.route('/image-details')
+def image_details():
+    filename=request.args.get('filename')
+    if filename is None:
+        return render_template('Notfound.html')
+    imgtime = datetime.datetime.strptime(filename, imageNamePrefix+'%Y%m%d-%H%M%S.jpg')
+    td = datetime.timedelta(seconds=5.5)
+    db = MongoClient('192.168.0.4')
+    fileinfo = db.test.birdwatcher.find_one({'filename': filename})
+    cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
+    weights = [x['weight'] for x in cursor]
+    change = max(weights)-min(weights)
+    changesign = 'arrived'
+    if weights[0] > weights[-1]:
+        changesign = 'departed'
+    files=sorted(os.listdir('motion'))
+    fileindex = files.index(filename)
+    nextfile = files[-1]
+    if fileindex < len(files) -1:
+        nextfile = files[fileindex + 1]
+    previousfile = files[fileindex - 1]
+    return render_template('imageinfo.html', filename=filename, 
+                           changesign=changesign, change=change, weights=entries,
+                           nextfile=nextfile, previousfile=previousfile, timestamp=imgtime)
+    
     
 if __name__=='__main__':
     app.run(port=8000, host='0.0.0.0', debug=True)
