@@ -3,21 +3,43 @@
 <meta character="utf-8">
 
 <body>
+<script src="static/js/jquery-3.1.1.min.js"></script>
+<script src="static/js/scripts.js"></script>
 <h2>Bird feeder cam at {{ timestamp.hour }}:{{timestamp.minute}}:{{timestamp.second}} on 
 {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}}  </h2>
 
 <div>
-<img src="/show-image?filename={{filename}}" />
-
-</div>
-<table border=1>
+<table>
+<tr><td><a href="/image-details?filename={{previousfile}}">Previous</a></td>
+<td><img src="/show-image?filename={{filename}}" height=600 /></td>
+<td><a href="/image-details?filename={{nextfile}}">Next</a></td>
+<td><table border=1>
 <tr><td>Status</td><td>{{changesign}}</td></tr>
 <tr><td>Weight change</td><td>{{change}}g</td></tr>
 {% for w in weights %}
 <tr><td>{{ w.timestamp }}</td><td>{{w.weight}}g</td></tr>
 {% endfor %}
-<tr><td><a href="/image-details?filename={{previousfile}}">Previous</a></td>
-<td><a href="/image-details?filename={{nextfile}}">Next</a></td></tr>
+{% if fileinfo.species %}
+<tr><td>Species</td><td>{{fileinfo.species}}</td></tr>
+{% endif %}
 </table>
-
+<form name="birdform" id="birdform">
+<input type="hidden" name="picid" id="picid" value="{{filename}}">
+<select name="species" id="species">
+<option value="No bird">No bird
+<option value="Unidentified">Unidentified
+<option value="Sparrow, Male">Sparrow, Male
+<option value="Sparrow, Female">Sparrow, Female
+<option value="Sparrow, unsure">Sparrow, unsure
+<option value="Robin">Robin
+<option value="Blue tit">Blue tit
+<option value="Coal tit">Coal tit
+<option value="Great tit">Great tit
+<option value="Chaffinch">Chaffinch
+<option value="Goldcrest">Goldcrest
+<option value="Other">Other
+</select>
+<span name="submit" id="submit">Submit</span>
+</form>
+</td></tr></table>
 </body>

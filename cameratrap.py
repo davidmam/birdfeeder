@@ -20,8 +20,10 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from fractions import Fraction
 
-from flask import Flask, send_file,request, render_template
+from flask import Flask, send_file,request, render_template,send_from_directory
 from pymongo import MongoClient
+from bson.json_util import dumps
+
 app=Flask(__name__)
 
 mypath = os.path.abspath(__file__)  # Find the full path of this python script
@@ -182,9 +184,14 @@ def image_details():
     imgtime = datetime.datetime.strptime(filename, imageNamePrefix+'%Y%m%d-%H%M%S.jpg')
     td = datetime.timedelta(seconds=5.5)
     db = MongoClient('192.168.0.4')
+    
     fileinfo = db.test.birdwatcher.find_one({'filename': filename})
-    cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
-    weights = [x['weight'] for x in cursor]
+    if fileinfo and 'tag' in fileinfo:
+        cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
+    else:
+         cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte': imgtime }})
+    entries = sorted([y for y in cursor],key=lambda x:x['timestamp'])    
+    weights = [x['weight'] for x in entries] 
     change = max(weights)-min(weights)
     changesign = 'arrived'
     if weights[0] > weights[-1]:
@@ -197,8 +204,27 @@ def image_details():
     previousfile = files[fileindex - 1]
     return render_template('imageinfo.html', filename=filename, 
                            changesign=changesign, change=change, weights=entries,
-                           nextfile=nextfile, previousfile=previousfile, timestamp=imgtime)
-    
+                           nextfile=nextfile, previousfile=previousfile, 
+                           fileinfo=fileinfo, timestamp=imgtime)
+ 
+@app.route('/bird-details', methods=['POST'])
+def bird_details():
+    '''setter for bird details'''
+    picid = request.form.get('picid')
+    bird = request.form.get('species')
+    db = MongoClient('192.168.0.4')
+    db.test.birdwatcher.update({'filename': picid},
+                              {'$set': {'species': bird}},
+                              upsert=True)
+
+    return dumps({'species':bird,
+		'id': picid} )
+
+
+@app.route('/static/js/<path:path>')
+def send_js(path):
+    return send_from_directory('static/js', path)
+                            
     
 if __name__=='__main__':
     app.run(port=8000, host='0.0.0.0', debug=True)
