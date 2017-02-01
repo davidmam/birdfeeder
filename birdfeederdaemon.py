@@ -64,7 +64,7 @@ class App():
                     # trigger photo here
                     tag = datetime.now().strftime('%Y%m%d%H%M%S')
                     try:
-                        response=urlopen('http://'+watcher_ip+'/take-image')
+                        response=urlopen('http://'+watcher_ip+'/take-image?tag='+tag)
                     except:
                         print('No response from', watcher_ip)
                     for n in ringbuffer:
