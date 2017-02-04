@@ -7,7 +7,7 @@
 <script src="static/js/scripts.js"></script>
 <h2>Bird feeder cam at {{ timestamp.hour }}:{{timestamp.minute}}:{{timestamp.second}} on 
 {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}}  </h2>
-<a href="/list-images?day={{timestamp.year}}{{timestamp.month}}{{timestamp.day}}>Image list for {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}} </a>
+<a href="/list-images?day={{timestamp.strftime('%Y%m%d')}}">Image list for {{timestamp.day}}/{{timestamp.month}}/{{timestamp.year}} </a>
 <div>
 <table>
 <tr><td><a href="/image-details?filename={{previousfile}}">Previous</a></td>

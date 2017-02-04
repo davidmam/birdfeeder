@@ -185,7 +185,7 @@ def image_details():
     td = datetime.timedelta(seconds=5.5)
     db = MongoClient('192.168.0.4')
     
-    fileinfo = db.test.birdwatcher.find_one({'filename': filename})
+    fileinfo = db.test.birdwatcher.find_one({'filename': 'motion/'+filename})
     if fileinfo and 'tag' in fileinfo:
         cursor = db.test.birdfeeder.find({'tag': fileinfo['tag']})
     else:
@@ -213,7 +213,7 @@ def bird_details():
     picid = request.form.get('picid')
     bird = request.form.get('species')
     db = MongoClient('192.168.0.4')
-    db.test.birdwatcher.update({'filename': picid},
+    db.test.birdwatcher.update({'filename': 'motion/'+picid},
                               {'$set': {'species': bird}},
                               upsert=True)
 
