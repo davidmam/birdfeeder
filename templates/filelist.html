@@ -4,15 +4,15 @@
 
 <body>
 <h2>{{ heading }}</h2>
-<ul>
-{% for image in images %}
-<li><a href="{{'/image-details?filename=' + image }}">{{image}}</a></li>
-{% endfor %}
-</ul>
 {% if previousday %}
 <a href="{{'/list-images?day='+ previousday }}">{{previousday}}</a>
 {% endif %}
 {% if nextday %}
 <a href="{{'/list-images?day='+ nextday }}">{{nextday}}</a>
 {% endif %}
+<table>
+{% for image in images %}
+<tr><td><a href="{{'/image-details?filename=' + image.filename[7:] }}">{{image.filename[7:]}}</a></td><td>{{ image.species}}</td></tr>
+{% endfor %}
+</table>
 </body>

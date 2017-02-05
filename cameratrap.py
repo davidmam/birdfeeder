@@ -143,12 +143,14 @@ def hello():
 @app.route('/take-image')
 def take_image():
     filename = getImageName(motionDir, imageNamePrefix)
+    daystamp = datetime.datetime.now().strftime('%Y%m%d')
     tag = request.args.get('tag')
     takeDayImage(filename)
     writeTextToImage(filename, str(datetime.datetime.now()))
     if tag:
         db = MongoClient('192.168.0.4')
-        db.test.birdwatcher.insert({'tag':tag, 'filename':filename})
+        db.test.birdwatcher.insert({'tag':tag, 'filename':filename,
+                                     'day': daystamp})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
 
 @app.route('/take-video')
@@ -170,10 +172,13 @@ def list_images():
     daystamp = request.args.get('day', daystamp)
     files = sorted([ x for x in os.listdir('motion') if daystamp in x ])
     day = datetime.datetime.strptime(daystamp, '%Y%m%d')
+    db = MongoClient('192.168.0.4').test.birdwatcher
+    cursor = db.find({'day': daystamp})
+    filelist = [ x for x in cursor if x['filename'][7:] in files]
     nextday = day + datetime.timedelta(days=1)
     previousday =day - datetime.timedelta(days=1)
     return render_template('filelist.html', heading = 'images for '+daystamp,
-                           images=files, nextday=nextday.strftime('%Y%m%d'), 
+                           images=filelist, nextday=nextday.strftime('%Y%m%d'), 
                            previousday=previousday.strftime('%Y%m%d'))
     
 @app.route('/image-details')
