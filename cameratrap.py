@@ -88,7 +88,13 @@ def getVideoName(path, prefix):
 
 def takeDayImage(filename):
     # Take a Day image using exp=auto and awb=auto
-    camera.capture(filename, use_video_port=useVideoPort)
+    with picamera.PiCamera() as camera:
+            camera.resolution = (imageWidth, imageHeight)
+            camera.vflip = imageVFlip
+            camera.hflip = imageHFlip
+            camera.rotation = imageRotation #Note use imageVFlip and imageHFlip variables
+            sleep(0.2)
+            camera.capture(filename, use_video_port=useVideoPort)
     logging.info("Size=%ix%i exp=auto awb=auto %s" % (imageWidth, imageHeight, filename))
     return
 
@@ -226,6 +232,6 @@ def send_js(path):
                             
     
 if __name__=='__main__':
-    with picamera.PiCamera() as camera:
-        camera.resolution = (imageWidth, imageHeight)
-        app.run(port=8000, host='0.0.0.0', debug=True)
+    #with picamera.PiCamera() as camera:
+     #   camera.resolution = (imageWidth, imageHeight)
+    app.run(port=8000, host='0.0.0.0', debug=True)
