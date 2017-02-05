@@ -19,7 +19,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from fractions import Fraction
-
+from subprocess import call
 from flask import Flask, send_file,request, render_template,send_from_directory
 from pymongo import MongoClient
 from bson.json_util import dumps
@@ -88,21 +88,12 @@ def getVideoName(path, prefix):
 
 def takeDayImage(filename):
     # Take a Day image using exp=auto and awb=auto
-    with picamera.PiCamera() as camera:
-        camera.resolution = (imageWidth, imageHeight) 
-        time.sleep(0.5)   # sleep for a little while so camera can get adjustments
-        if imagePreview:
-            camera.start_preview()
-        camera.vflip = imageVFlip
-        camera.hflip = imageHFlip
-        camera.rotation = imageRotation #Note use imageVFlip and imageHFlip variables
-        # Day Automatic Mode
-        camera.exposure_mode = 'auto'
-        camera.awb_mode = 'auto'
-        camera.capture(filename, use_video_port=useVideoPort)
+    camera.capture(filename, use_video_port=useVideoPort)
     logging.info("Size=%ix%i exp=auto awb=auto %s" % (imageWidth, imageHeight, filename))
     return
 
+def takeWebcamImage(filename):
+    call(["fswebcam", "-d","/dev/video0", "-r", "640x480", "--no-banner", filename])
 
 
 def takeVideo(filename):
@@ -145,10 +136,12 @@ def take_image():
     filename = getImageName(motionDir, imageNamePrefix)
     tag = request.args.get('tag')
     takeDayImage(filename)
+    revfn = getImageName(motionDir, 'reverse')
     writeTextToImage(filename, str(datetime.datetime.now()))
     if tag:
         db = MongoClient('192.168.0.4')
         db.test.birdwatcher.insert({'tag':tag, 'filename':filename})
+        db.test.birdwatcher.insert({'tag':tag, 'filename':revfn})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
 
 @app.route('/take-video')
@@ -227,4 +220,6 @@ def send_js(path):
                             
     
 if __name__=='__main__':
-    app.run(port=8000, host='0.0.0.0', debug=True)
+    with picamera.PiCamera() as camera:
+        camera.resolution = (imageWidth, imageHeight)
+        app.run(port=8000, host='0.0.0.0', debug=True)
