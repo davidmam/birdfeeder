@@ -11,5 +11,6 @@ function recordBird() {
 $(document).ready(function(){
     $("#submit").click(function(event){
         recordBird();
+        $(this).css("color","blue");
     })
 })
