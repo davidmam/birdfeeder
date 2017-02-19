@@ -151,6 +151,6 @@ if __name__=='__main__':
     
             hx.power_down()
             hx.power_up()
-            time.sleep(0.5)
+            #time.sleep(0.5)
         except (KeyboardInterrupt, SystemExit):
             cleanAndExit()

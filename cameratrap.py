@@ -144,6 +144,7 @@ def take_image():
     tag = request.args.get('tag')
     takeDayImage(filename)
     revfn = getImageName(motionDir, 'reverse')
+    takeWebcamImage(revfn)
     writeTextToImage(filename, str(datetime.datetime.now()))
     if tag:
         db = MongoClient('192.168.0.4')
