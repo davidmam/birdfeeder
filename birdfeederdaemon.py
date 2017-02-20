@@ -29,7 +29,7 @@ from statistics import median
 
 class App():
     
-    def __init__(self):
+    def __init__(self, maxring=5, average=5):
         self.stdin_path = '/dev/null'
         self.stdout_path = '/dev/tty'
         self.stderr_path = '/dev/tty'
@@ -40,6 +40,8 @@ class App():
         self.feeder.set_reference_unit(92)
         self.feeder.power_down()
         self.feeder.power_up()
+        self.maxringsize=maxring
+        self.avecount=average
         client = MongoClient('192.168.0.4')
         self.db=client.test.birdfeeder
         time.sleep(2)
@@ -47,15 +49,15 @@ class App():
             
     def run(self):
         ringbuffer = []
-        maxringsize = 5
+        maxringsize = self.maxringsize
         pos = 0
         lastweight = 0 
         threshold = 3.0 # minimum change to record
         while True:
             try:
-                weight = self.feeder.get_weight(5)                
+                weight = self.feeder.get_weight(self.avecount)                
                 timestamp = datetime.now()
-                if len(ringbuffer) <5:
+                if len(ringbuffer) <maxringsize:
                     ringbuffer.append((weight,timestamp))
                 else:
                     ringbuffer[pos] = (weight, timestamp)
@@ -99,7 +101,7 @@ class App():
         sys.exit()
     
 def runprog():
-    app = App()
+    app = App(maxring=3, average=3)
     '''
     logger = logging.getLogger("DaemonLog")
     logger.setLevel(logging.INFO)
