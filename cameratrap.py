@@ -93,7 +93,7 @@ def takeDayImage(filename):
             camera.vflip = imageVFlip
             camera.hflip = imageHFlip
             camera.rotation = imageRotation #Note use imageVFlip and imageHFlip variables
-            sleep(0.2)
+            time.sleep(0.2)
             camera.capture(filename, use_video_port=useVideoPort)
     logging.info("Size=%ix%i exp=auto awb=auto %s" % (imageWidth, imageHeight, filename))
     return
@@ -149,9 +149,7 @@ def take_image():
     if tag:
         db = MongoClient('192.168.0.4')
         db.test.birdwatcher.insert({'tag':tag, 'filename':filename,
-                                     'day': daystamp})
-        db.test.birdwatcher.insert({'tag':tag, 'filename':revfn,
-                                     'day': daystamp})
+                                     'day': daystamp, 'reverse': revfn})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
 
 @app.route('/take-video')
@@ -198,11 +196,13 @@ def image_details():
          cursor = db.test.birdfeeder.find({'timestamp': {'$gte': imgtime - td, '$lte': imgtime }})
     entries = sorted([y for y in cursor],key=lambda x:x['timestamp'])    
     weights = [x['weight'] for x in entries] 
-    change = max(weights)-min(weights)
     changesign = 'arrived'
-    if weights[0] > weights[-1]:
-        changesign = 'departed'
-    files=sorted(os.listdir('motion'))
+    change=0
+    if weights:
+        change = max(weights)-min(weights)
+        if weights[0] > weights[-1]:
+            changesign = 'departed'
+    files=[x for x in sorted(os.listdir('motion')) if x[:4]=='cam1']
     fileindex = files.index(filename)
     nextfile = files[-1]
     if fileindex < len(files) -1:
