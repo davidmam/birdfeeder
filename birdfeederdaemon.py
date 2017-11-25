@@ -27,6 +27,8 @@ from datetime import datetime
 from pymongo import MongoClient
 from statistics import median
 
+MONGODBCLIENT='192.168.0.3'
+
 class App():
     
     def __init__(self, maxring=5, average=5):
@@ -42,7 +44,7 @@ class App():
         self.feeder.power_up()
         self.maxringsize=maxring
         self.avecount=average
-        client = MongoClient('192.168.0.4')
+        client = MongoClient(MONGODBCLIENT)
         self.db=client.test.birdfeeder
         time.sleep(2)
         self.feeder.tare()
@@ -82,7 +84,7 @@ class App():
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize
                 lastweight = thisweight
-                time.sleep(0.2)
+                time.sleep(0.1)
                 
             except (KeyboardInterrupt, SystemExit):
                 self.cleanAndExit()#Main code goes here ...
@@ -101,7 +103,7 @@ class App():
         sys.exit()
     
 def runprog():
-    app = App(maxring=3, average=3)
+    app = App(maxring=5, average=3)
     '''
     logger = logging.getLogger("DaemonLog")
     logger.setLevel(logging.INFO)
