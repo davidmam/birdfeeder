@@ -26,6 +26,7 @@ from bson.json_util import dumps
 
 app=Flask(__name__)
 
+MONGODBCLIENT = '192.168.0.3'
 mypath = os.path.abspath(__file__)  # Find the full path of this python script
 baseDir = os.path.dirname(mypath)  # get the path location only (excluding script name)
 baseFileName = os.path.splitext(os.path.basename(mypath))[0]
@@ -147,7 +148,7 @@ def take_image():
     takeWebcamImage(revfn)
     writeTextToImage(filename, str(datetime.datetime.now()))
     if tag:
-        db = MongoClient('192.168.0.4')
+        db = MongoClient(MONGODBCLIENT)
         db.test.birdwatcher.insert({'tag':tag, 'filename':filename,
                                      'day': daystamp, 'reverse': revfn})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
@@ -171,7 +172,7 @@ def list_images():
     daystamp = request.args.get('day', daystamp)
     files = sorted([ x for x in os.listdir('motion') if daystamp in x ])
     day = datetime.datetime.strptime(daystamp, '%Y%m%d')
-    db = MongoClient('192.168.0.4').test.birdwatcher
+    db = MongoClient(MONGODBCLIENT).test.birdwatcher
     cursor = db.find({'day': daystamp})
     filelist = [ x for x in cursor if x['filename'][7:] in files]
     nextday = day + datetime.timedelta(days=1)
@@ -187,7 +188,7 @@ def image_details():
         return render_template('Notfound.html')
     imgtime = datetime.datetime.strptime(filename, imageNamePrefix+'%Y%m%d-%H%M%S.jpg')
     td = datetime.timedelta(seconds=5.5)
-    db = MongoClient('192.168.0.4')
+    db = MongoClient(MONGODBCLIENT)
     
     fileinfo = db.test.birdwatcher.find_one({'filename': 'motion/'+filename})
     if fileinfo and 'tag' in fileinfo:
@@ -218,7 +219,7 @@ def bird_details():
     '''setter for bird details'''
     picid = request.form.get('picid')
     bird = request.form.get('species')
-    db = MongoClient('192.168.0.4')
+    db = MongoClient(MONGODBCLIENT)
     db.test.birdwatcher.update({'filename': 'motion/'+picid},
                               {'$set': {'species': bird}},
                               upsert=True)
