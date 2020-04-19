@@ -27,7 +27,7 @@ from datetime import datetime
 from pymongo import MongoClient
 from statistics import median
 
-MONGODBCLIENT='192.168.0.3'
+MONGODBCLIENT='bird-db.local'
 
 class App():
     
@@ -75,7 +75,7 @@ class App():
                 
                 # save median value
                 
-                        self.db.insert({'Sensor': 'birdfeeder', 
+                        self.db.insert_one({'Sensor': 'birdfeeder', 
                                         'timestamp': n[1],
                                         'weight': n[0], 
                                         'change': thisweight-lastweight,
