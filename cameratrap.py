@@ -26,7 +26,7 @@ from bson.json_util import dumps
 
 app=Flask(__name__)
 
-MONGODBCLIENT = '192.168.0.3'
+MONGODBCLIENT = 'bird-db.local'
 mypath = os.path.abspath(__file__)  # Find the full path of this python script
 baseDir = os.path.dirname(mypath)  # get the path location only (excluding script name)
 baseFileName = os.path.splitext(os.path.basename(mypath))[0]
