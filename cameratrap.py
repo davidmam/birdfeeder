@@ -4,6 +4,7 @@ Created on Wed Jan 25 20:35:03 2017
 
 @author: David
 """
+from __future__ import print_function
 import datetime
 import glob
 import logging
@@ -15,7 +16,6 @@ import picamera
 import picamera.array
 import numpy as np
 import pyexiv2
-from __future__ import print_function
 from imutils.video import WebcamVideoStream
 from imutils.video import FPS
 import argparse
@@ -108,7 +108,7 @@ def takeDayImage__(filename):
     logging.info("Size=%ix%i exp=auto awb=auto %s" % (imageWidth, imageHeight, filename))
     return
 
-def takeDayimage(filename):
+def takeDayImage(filename):
     ''' grabs the frame from teh raspi camera'''
     frame = rpicam.read()
     cv2.imwrite(filename, frame)
@@ -164,7 +164,7 @@ def take_image():
     takeDayImage(filename)
     revfn = getImageName(motionDir, 'reverse')
     takeWebcamImage(revfn)
-    writeTextToImage(filename, str(datetime.datetime.now()))
+    #writeTextToImage(filename, str(datetime.datetime.now()))
     if tag:
         db = MongoClient(MONGODBCLIENT)
         db.test.birdwatcher.insert_one({'tag':tag, 'filename':filename,
