@@ -4,6 +4,7 @@ Created on Wed Jan 25 20:35:03 2017
 
 @author: David
 """
+from __future__ import print_function
 import datetime
 import glob
 import logging
@@ -15,6 +16,11 @@ import picamera
 import picamera.array
 import numpy as np
 import pyexiv2
+from imutils.video import WebcamVideoStream
+from imutils.video import FPS
+import argparse
+import imutils
+import cv2
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
@@ -35,7 +41,10 @@ logFilePath = os.path.join(baseDir, baseFileName + ".log")
 print("----------------------------------------------------------------------------------------------")
 # print("%s %s" %( progName, progVer ))
 
+rpicam = WebcamVideoStream(0)
+webcam = WebcamVideoStream(1)
 configFilePath = os.path.join(baseDir, "config.py")
+
 if not os.path.exists(configFilePath):
     print("ERROR - Cannot Import Configuration Variables. Missing Configuration File %s" % ( configFilePath ))
     quit()
@@ -87,7 +96,7 @@ def getVideoName(path, prefix):
     filename = "%s/%s%04d%02d%02d-%02d%02d%02d.h264" % ( path, prefix ,rightNow.year, rightNow.month, rightNow.day, rightNow.hour, rightNow.minute, rightNow.second)
     return filename
 
-def takeDayImage(filename):
+def takeDayImage__(filename):
     # Take a Day image using exp=auto and awb=auto
     with picamera.PiCamera() as camera:
             camera.resolution = (imageWidth, imageHeight)
@@ -99,9 +108,18 @@ def takeDayImage(filename):
     logging.info("Size=%ix%i exp=auto awb=auto %s" % (imageWidth, imageHeight, filename))
     return
 
-def takeWebcamImage(filename):
+def takeDayImage(filename):
+    ''' grabs the frame from teh raspi camera'''
+    frame = rpicam.read()
+    cv2.imwrite(filename, frame)
+    
+def takeWebcamImage__(filename):
     call(["fswebcam", "-d","/dev/video0", "-r", "640x480", "--no-banner", filename])
 
+def takeWebcamImage(filename):
+    '''Grabs an image fromt eh webcam stream'''
+    frame = webcam.read()
+    cv2.imwrite(filename, frame)
 
 def takeVideo(filename):
     # Take a short motion video if required
@@ -146,10 +164,10 @@ def take_image():
     takeDayImage(filename)
     revfn = getImageName(motionDir, 'reverse')
     takeWebcamImage(revfn)
-    writeTextToImage(filename, str(datetime.datetime.now()))
+    #writeTextToImage(filename, str(datetime.datetime.now()))
     if tag:
         db = MongoClient(MONGODBCLIENT)
-        db.test.birdwatcher.insert({'tag':tag, 'filename':filename,
+        db.test.birdwatcher.insert_one({'tag':tag, 'filename':filename,
                                      'day': daystamp, 'reverse': revfn})
     return send_file(open(filename, 'rb'), mimetype='image/jpeg')
 
@@ -235,5 +253,7 @@ def send_js(path):
     
 if __name__=='__main__':
     #with picamera.PiCamera() as camera:
-     #   camera.resolution = (imageWidth, imageHeight)
+    #   camera.resolution = (imageWidth, imageHeight)
+    webcam.start()
+    rpicam.start()
     app.run(port=8000, host='0.0.0.0', debug=True)
