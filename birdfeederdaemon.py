@@ -14,6 +14,7 @@ Data logging for weighing birdfeeder
 #standard python libs
 import logging
 import time
+import statistics
 import requests
 from urllib.request import urlopen
 
@@ -32,6 +33,7 @@ MONGODBCLIENT='bird-db.local'
 class App():
     
     def __init__(self, maxring=5, average=5, smoothingbuffersize=1000):
+        self.initialising = True
         self.stdin_path = '/dev/null'
         self.stdout_path = '/dev/tty'
         self.stderr_path = '/dev/tty'
@@ -49,16 +51,20 @@ class App():
         self.db=client.test.birdfeeder
         time.sleep(2)
         self.feeder.tare()
+        self.initialising = False
+        print('Tare complete')
             
     def run(self):
+        while self.initialising:
+            print('Waiting for initialising')
+            time.sleep(2)
         ringbuffer = []
         maxringsize = self.maxringsize
         smoothingbuffer = []
-        smoothingbuffer = self.smoothingbuffersize
         pos = 0
         sbpos = 0
         lastweight = 0 
-        sensitivity = 3 # minimum change to record
+        sensitivity = 2 # minimum change to record
         while True:
             try:
                 weight = self.feeder.get_weight(self.avecount)                
@@ -72,8 +78,11 @@ class App():
                     smoothingbuffer.append(thisweight)
                 else:
                     smoothingbuffer[sbpos] = thisweight
-                stdev = math.sd(smoothingbuffer)
-                threshold = stdev * sensitivity
+                if len(smoothingbuffer) >50:
+                    stdev = statistics.stdev(smoothingbuffer)
+                    threshold = stdev * sensitivity
+                else:
+                    threshold=8
                 if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
                     tag = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -87,7 +96,7 @@ class App():
                 
                 # save median value
                 
-                        self.db.insert_one({'Sensor': 'birdfeeder', 
+                        self.db.insert({'Sensor': 'birdfeeder', 
                                         'timestamp': n[1],
                                         'weight': n[0], 
                                         'change': thisweight-lastweight,
@@ -96,12 +105,15 @@ class App():
                 #self.feeder.power_down()
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize
-                sbpos = (sbpos+1)%smoothingbuffersize
+                sbpos = (sbpos+1)%self.smoothingbuffersize
                 lastweight = thisweight
+                if sbpos ==0:
+                    print('Current weight: {} Mean weight: {} SD: {} Threshold: {}'.format(lastweight, statistics.mean(smoothingbuffer), stddev, threshold))
                 time.sleep(0.1)
+
                 
             except (KeyboardInterrupt, SystemExit):
-                self.cleanAndExit()#Main code goes here ...
+                self.cleanAndExit()
             #Note that logger level needs to be set to logging.DEBUG before this shows up in the logs
             '''logger.debug("Debug message")
             logger.info("Info message")
