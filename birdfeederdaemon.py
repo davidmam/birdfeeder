@@ -54,7 +54,7 @@ class App():
         ringbuffer = []
         maxringsize = self.maxringsize
         smoothingbuffer = []
-        smoothingbuffer = self. smnoothingbuffersize
+        smoothingbuffer = self.smoothingbuffersize
         pos = 0
         sbpos = 0
         lastweight = 0 
