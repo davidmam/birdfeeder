@@ -58,7 +58,7 @@ class App():
         pos = 0
         sbpos = 0
         lastweight = 0 
-        sensitivity = 2 # minimum change to record
+        sensitivity = 3 # minimum change to record
         while True:
             try:
                 weight = self.feeder.get_weight(self.avecount)                
