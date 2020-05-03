@@ -12,6 +12,7 @@ Data logging for weighing birdfeeder
 #   PYTHONPATH=`pwd` python testdaemon.py start
 
 #standard python libs
+import sys
 import logging
 import time
 import statistics
@@ -32,7 +33,7 @@ MONGODBCLIENT='bird-db.local'
 
 class App():
     
-    def __init__(self, maxring=5, average=5, smoothingbuffersize=1000):
+    def __init__(self, maxring=5, average=5, smoothingbuffersize=1024,sensitivity=1.5):
         self.initialising = True
         self.stdin_path = '/dev/null'
         self.stdout_path = '/dev/tty'
@@ -68,6 +69,7 @@ class App():
         while True:
             try:
                 weight = self.feeder.get_weight(self.avecount)                
+                assert weight
                 timestamp = datetime.now()
                 if len(ringbuffer) <maxringsize:
                     ringbuffer.append((weight,timestamp))
@@ -75,11 +77,11 @@ class App():
                     ringbuffer[pos] = (weight, timestamp)
                 thisweight = median([x[0] for x in ringbuffer])
                 if len(smoothingbuffer) <self.smoothingbuffersize:
-                    smoothingbuffer.append(thisweight)
+                    smoothingbuffer.append((timestamp, thisweight))
                 else:
-                    smoothingbuffer[sbpos] = thisweight
+                    smoothingbuffer[sbpos] = (timestamp,thisweight)
                 if len(smoothingbuffer) >50:
-                    stdev = statistics.stdev(smoothingbuffer)
+                    stdev = statistics.stdev([x[1] for x in smoothingbuffer])
                     threshold = stdev * sensitivity
                 else:
                     threshold=8
@@ -108,8 +110,19 @@ class App():
                 sbpos = (sbpos+1)%self.smoothingbuffersize
                 lastweight = thisweight
                 if sbpos ==0:
-                    print('Current weight: {} Mean weight: {} SD: {} Threshold: {}'.format(lastweight, statistics.mean(smoothingbuffer), stddev, threshold))
-                time.sleep(0.1)
+                    ofh = open('weightdata/{}.txt'.format(timestamp),'w')
+                    data = sorted([x for x in smoothingbuffer if x[1]], key=lambda x:x[0])
+                    mw = statistics.mean([x[1] for x in data])
+                    print('Current weight: {: .2f} Mean weight: {: .2f} SD: {: .2f} Threshold: {: .2f}'.format(lastweight, statistics.mean([x[1] for x in data]), stdev, threshold))
+                    print('Current weight: {: .2f} Mean weight: {: .2f} SD: {: .2f} Threshold: {: .2f}'.format(lastweight, statistics.mean([x[1] for x in data]), stdev, threshold), file=ofh)
+                    for w in data:
+                        if w[1]:
+                            print(w[0], w[1], w[1] - mw, sep='\t' ,file=ofh)
+
+                    #logging.info('Current weight: {} Mean weight: {} SD: {} Threshold: {}'.format(lastweight, statistics.mean(smoothingbuffer), stdev, threshold))
+                    ofh.close()
+
+                time.sleep(0.01)
 
                 
             except (KeyboardInterrupt, SystemExit):
@@ -128,8 +141,8 @@ class App():
         print ("Bye!")
         sys.exit()
     
-def runprog():
-    app = App(maxring=5, average=3)
+def runprog(sensitivity=1.5):
+    app = App(maxring=5, average=3, sensitivity=sensitivity)
     '''
     logger = logging.getLogger("DaemonLog")
     logger.setLevel(logging.INFO)
@@ -147,4 +160,9 @@ def runprog():
 
 if __name__ == '__main__':
     watcher_ip = open('watcher_ip').read().strip()
-    runprog()
+    if len(sys.argv) >1:
+        sens =float(sys.argv[1])
+    else:
+        sens = 1.5
+
+    runprog(sensitivity=sens)
