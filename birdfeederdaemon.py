@@ -31,7 +31,7 @@ MONGODBCLIENT='bird-db.local'
 
 class App():
     
-    def __init__(self, maxring=5, average=5):
+    def __init__(self, maxring=5, average=5, smoothingbuffersize=1000):
         self.stdin_path = '/dev/null'
         self.stdout_path = '/dev/tty'
         self.stderr_path = '/dev/tty'
@@ -43,6 +43,7 @@ class App():
         self.feeder.power_down()
         self.feeder.power_up()
         self.maxringsize=maxring
+        self.smoothingbuffersize = smoothingbuffersize
         self.avecount=average
         client = MongoClient(MONGODBCLIENT)
         self.db=client.test.birdfeeder
@@ -52,9 +53,12 @@ class App():
     def run(self):
         ringbuffer = []
         maxringsize = self.maxringsize
+        smoothingbuffer = []
+        smoothingbuffer = self. smnoothingbuffersize
         pos = 0
+        sbpos = 0
         lastweight = 0 
-        threshold = 3.0 # minimum change to record
+        sensitivity = 2 # minimum change to record
         while True:
             try:
                 weight = self.feeder.get_weight(self.avecount)                
@@ -64,11 +68,19 @@ class App():
                 else:
                     ringbuffer[pos] = (weight, timestamp)
                 thisweight = median([x[0] for x in ringbuffer])
+                if len(smoothingbuffer) <self.smoothingbuffersize:
+                    smoothingbuffer.append(thisweight)
+                else:
+                    smoothingbuffer[sbpos] = thisweight
+                stdev = math.sd(smoothingbuffer)
+                threshold = stdev * sensitivity
                 if abs(thisweight - lastweight) >threshold:
                     # trigger photo here
                     tag = datetime.now().strftime('%Y%m%d%H%M%S')
                     try:
-                        response=urlopen('http://'+watcher_ip+'/take-image?tag='+tag)
+                        url = 'http://'+watcher_ip+'/take-image?tag='+tag
+                        print(url)
+                        response=urlopen(url)
                     except:
                         print('No response from', watcher_ip)
                     for n in ringbuffer:
@@ -79,10 +91,12 @@ class App():
                                         'timestamp': n[1],
                                         'weight': n[0], 
                                         'change': thisweight-lastweight,
+                                        'sd': stdev,
                                         'tag': tag} )
                 #self.feeder.power_down()
                 #self.feeder.power_up()
                 pos = (pos+1)%maxringsize
+                sbpos = (sbpos+1)%smoothingbuffersize
                 lastweight = thisweight
                 time.sleep(0.1)
                 
@@ -120,5 +134,5 @@ def runprog():
     app.run()
 
 if __name__ == '__main__':
-    watcher_ip = open('watcher_ip').read()
+    watcher_ip = open('watcher_ip').read().strip()
     runprog()
