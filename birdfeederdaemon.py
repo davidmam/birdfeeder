@@ -54,7 +54,7 @@ class App():
         maxringsize = self.maxringsize
         pos = 0
         lastweight = 0 
-        threshold = 3.0 # minimum change to record
+        threshold = 5.0 # minimum change to record
         while True:
             try:
                 weight = self.feeder.get_weight(self.avecount)                
@@ -68,7 +68,9 @@ class App():
                     # trigger photo here
                     tag = datetime.now().strftime('%Y%m%d%H%M%S')
                     try:
-                        response=urlopen('http://'+watcher_ip+'/take-image?tag='+tag)
+                        url='http://'+watcher_ip+'/take-image?tag='+tag
+                        print(url)
+                        response=urlopen(url)
                     except:
                         print('No response from', watcher_ip)
                     for n in ringbuffer:
@@ -120,5 +122,5 @@ def runprog():
     app.run()
 
 if __name__ == '__main__':
-    watcher_ip = open('watcher_ip').read()
+    watcher_ip = open('watcher_ip').read().strip()
     runprog()
